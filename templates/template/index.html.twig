@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello TemplateController!{% endblock %}
+
+{% block body %}
+    <div class="w-full px-10 py-6 mx-auto drop-zone loopple-min-height-78vh text-slate-500">
+        <div class="grid gap-6 grid-cols-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {% for template in templates %}
+                {% include 'components/card.html.twig' with {'template': template} %}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
