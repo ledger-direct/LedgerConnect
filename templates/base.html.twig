@@ -14,6 +14,10 @@
         {% endblock %}
     </head>
     <body>
-        {% block body %}{% endblock %}
+        {% include 'components/sidebar.html.twig' %}
+        <div class="lg:ml-[300px] relative h-full max-h-screen rounded-xl transition-all duration-200 bg-white" id="panel">
+            {% include 'components/header.html.twig' %}
+            {% block body %}{% endblock %}
+        </div>
     </body>
 </html>
