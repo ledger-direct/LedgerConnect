@@ -1,0 +1,36 @@
+id: 0
+label: loyalty-points
+wallets:
+  -
+    id: 0
+    ref: 00abf3c4
+    role: issuer
+  -
+    id: 1
+    ref: 004bf3d1
+    role: shop-custody
+scripts:
+  -
+    id: 0
+    transaction:
+      type: TrustSet
+      wallet: 004bf3d1
+      tx:
+        Account: 00abf3c4
+        LimitAmount:
+          currency: LOP
+          issuer: 00abf3c4
+          value: 1000000000
+  -
+    id: 2
+    transaction:
+      type: Payment
+      wallet: 00abf3c4
+      tx:
+        Account: 00abf3c4
+        Destination: 004bf3d1
+        DestinationTag: 1
+        Amount:
+          currency: LOP
+          issuer: 00abf3c4
+          value: 50000

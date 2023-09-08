@@ -7,12 +7,22 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Yaml\Yaml;
 
 class ProjectController extends AbstractController
 {
-    public function __construct(private WalletService $walletService)
-    {
+    private array $recipes = [];
 
+    public function __construct(private readonly WalletService $walletService)
+    {
+        $dir = getcwd() . '/../src/Recipes/';
+        $recipeFiles = scandir($dir);
+        foreach ($recipeFiles as $file) {
+            $key = str_replace('.yaml', '', $file);
+            if ($file !== '.' && $file !== '..') {
+                $this->recipes[$key] = Yaml::parseFile($dir . $file);
+            }
+        }
     }
 
     #[Route('/project', name: 'project')]
@@ -35,26 +45,12 @@ class ProjectController extends AbstractController
         string $templateType
     ): Response
     {
-        // TODO: Implement this as ArrayAccess
-        $wallets = [];
-        // TODO: Extend this to recipes
-        switch ($templateType) {
-            case 'single-wallet':
-                $wallet = $this->walletService->createWallet();
-                $wallets[] = [
-                    'function' => 'simple-wallet',
-                    'seed' => $wallet->getSeed(),
-                    'address' => $wallet->getAddress()
-                ];
-                break;
-            case 'loyalty-points':
-                break;
-            case 'token':
-                break;
-            default:
-                // TODO: Throw Error Response
-                break;
+        $recipe = $this->recipes[$templateType] ?? null;
+        if (!$recipe) {
+            // TODO Throw Exception
         }
+
+        $wallets = $this->walletService->handleRecipe($recipe);
 
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $randomString = '';
@@ -63,11 +59,10 @@ class ProjectController extends AbstractController
             $randomString .= $characters[$index];
         }
 
-
         return $this->render('project/show.html.twig', [
             'project' => [
                 'id' => $randomString,
-                'type' => 'Loyalty Points',
+                'type' => $recipe['label'],
                 'wallets' => $wallets
             ]
         ]);

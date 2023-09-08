@@ -32,4 +32,22 @@ class WalletService {
     {
         return false;
     }
+
+    public function handleRecipe(mixed $recipe)
+    {
+        $wallets = [];
+        foreach ($recipe['wallets'] as $wallet) {
+            $ref = $wallet['ref'];
+            $wallet = $this->createWallet();
+            $wallets[$ref] = [
+                'function' => 'simple-wallet',
+                'seed' => $wallet->getSeed(),
+                'address' => $wallet->getAddress()
+            ];
+        }
+
+        // sleep (1)
+
+        return $wallets;
+    }
 }

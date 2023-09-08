@@ -1,0 +1,6 @@
+id: 0
+label: single-wallet
+wallets:
+  -
+    id: 0
+    ref: 00c3a6d
