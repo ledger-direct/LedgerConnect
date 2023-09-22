@@ -10,12 +10,19 @@ class WalletService {
 
     private ConfigurationService $configurationService;
 
+    private TransactionService $transactionService;
+
     private JsonRpcClient $client;
 
-    public function __construct(ConfigurationService $configurationService) {
+    public function __construct(
+        ConfigurationService $configurationService,
+        TransactionService $transactionService,
+    ) {
         $this->configurationService = $configurationService;
         $networkUrl = $this->configurationService->getNetworkUrl();
         $this->client = new JsonRpcClient($networkUrl);
+
+        $this->transactionService = $transactionService;
     }
 
     public function createWallet(): Wallet
@@ -23,31 +30,31 @@ class WalletService {
         return $this->client->fundWallet();
     }
 
-    public function configureWallet(Wallet $wallet): bool
-    {
-        return false;
-    }
-
-    public function setTrustline(Wallet $wallet): bool
-    {
-        return false;
-    }
-
     public function handleRecipe(mixed $recipe)
     {
+        $short = [];
         $wallets = [];
-        foreach ($recipe['wallets'] as $wallet) {
-            $ref = $wallet['ref'];
+        foreach ($recipe['wallets'] as $walletDefinition) {
+            $ref = $walletDefinition['ref'];
             $wallet = $this->createWallet();
-            $wallets[$ref] = [
-                'function' => 'simple-wallet',
+            $wallets[$ref] = $wallet;
+            $short[$ref] = [
+                'function' => $walletDefinition['role'],
                 'seed' => $wallet->getSeed(),
                 'address' => $wallet->getAddress()
             ];
         }
 
-        // sleep (1)
+        if (count($recipe['scripts'])) {
+            sleep (1);
+            $this->transactionService->setWallets($wallets);
+        }
 
-        return $wallets;
+        foreach ($recipe['scripts'] as $script) {
+            $txPayload = $this->transactionService->createTxPayload($script['transaction']);
+            $this->transactionService->transact($wallets[$script['transaction']['wallet']], $txPayload);
+        }
+
+        return $short;
     }
 }

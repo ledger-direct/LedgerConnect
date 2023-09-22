@@ -16,7 +16,7 @@ scripts:
       type: TrustSet
       wallet: 004bf3d1
       tx:
-        Account: 00abf3c4
+        Account: 004bf3d1
         LimitAmount:
           currency: LOP
           issuer: 00abf3c4

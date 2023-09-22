@@ -11,6 +11,7 @@ use Symfony\Component\Yaml\Yaml;
 
 class ProjectController extends AbstractController
 {
+    public const RANDOM_CHARACTER_LIST = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     private array $recipes = [];
 
     public function __construct(private readonly WalletService $walletService)
@@ -52,11 +53,10 @@ class ProjectController extends AbstractController
 
         $wallets = $this->walletService->handleRecipe($recipe);
 
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $randomString = '';
         for ($i = 0; $i < 10; $i++) {
-            $index = rand(0, strlen($characters) - 1);
-            $randomString .= $characters[$index];
+            $index = rand(0, strlen(self::RANDOM_CHARACTER_LIST) - 1);
+            $randomString .= self::RANDOM_CHARACTER_LIST[$index];
         }
 
         return $this->render('project/show.html.twig', [
