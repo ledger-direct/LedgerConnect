@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
+use Psr\Log\LoggerInterface;
 use XRPL_PHP\Client\JsonRpcClient;
-use XRPL_PHP\Core\Networks;
 use XRPL_PHP\Wallet\Wallet;
 
 class WalletService {
@@ -14,15 +14,18 @@ class WalletService {
 
     private JsonRpcClient $client;
 
+    private ?LoggerInterface $logger;
+
     public function __construct(
         ConfigurationService $configurationService,
         TransactionService $transactionService,
+        ?LoggerInterface $logger
     ) {
         $this->configurationService = $configurationService;
         $networkUrl = $this->configurationService->getNetworkUrl();
         $this->client = new JsonRpcClient($networkUrl);
-
         $this->transactionService = $transactionService;
+        $this->logger = $logger;
     }
 
     public function createWallet(): Wallet
@@ -41,8 +44,10 @@ class WalletService {
             $short[$ref] = [
                 'function' => $walletDefinition['role'],
                 'seed' => $wallet->getSeed(),
-                'address' => $wallet->getAddress()
+                'address' => $wallet->getAddress(),
+                'ref' => $ref
             ];
+            $this->logWallet($short[$ref]);
         }
 
         if (count($recipe['scripts'])) {
@@ -52,9 +57,31 @@ class WalletService {
 
         foreach ($recipe['scripts'] as $script) {
             $txPayload = $this->transactionService->createTxPayload($script['transaction']);
-            $this->transactionService->transact($wallets[$script['transaction']['wallet']], $txPayload);
+            $this->logTxPayload($script, $txPayload);
+            $result = $this->transactionService->transact($wallets[$script['transaction']['wallet']], $txPayload);
+            $this->logTransactionResult($result);
         }
 
         return $short;
+    }
+
+    private function logWallet(array $shortInfo): void
+    {
+        $this->logger?->debug('Wallet: ', $shortInfo);
+    }
+
+    private function logTxPayload(array $script, array $txPayload): void
+    {
+        $this->logger?->debug('Transaction: ', [
+            'id' => $script['id'],
+            'tx' => print_r($txPayload, true)
+        ]);
+    }
+
+    private function logTransactionResult(array $result): void
+    {
+        $this->logger?->debug('Result: ', [
+            'res' => $result
+        ]);
     }
 }
